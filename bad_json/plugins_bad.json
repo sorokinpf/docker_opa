@@ -1,0 +1,20 @@
+{
+ "AuthMethod": "",
+ "Body": {},
+ "Headers": {
+  "Content-Length": "1552",
+  "Content-Type": "application/json",
+  "User-Agent": "Docker-Client/20.10.12 (linux)"
+ },
+ "Method": "DELETE",
+ "Path": "/v1.41/plugins",
+ "PathArr": [
+  "",
+  "v1.41",
+  "plugins",
+  "create"
+ ],
+ "PathPlain": "/v1.41/plugins/create",
+ "Query": {},
+ "User": ""
+}
