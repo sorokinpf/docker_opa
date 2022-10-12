@@ -1,0 +1,29 @@
+{
+ "AuthMethod": "",
+ "Body": {
+  "Driver": "local",
+  "DriverOpts": {
+    "device": "/home/jinna/Jinna_Balu/Test_volume",
+    "o": "bind",
+    "type": "none"
+  },
+  "Labels": {},
+  "Name": "my_test_volume2"
+},
+ "Headers": {
+  "Content-Length": "1552",
+  "Content-Type": "application/json",
+  "User-Agent": "Docker-Client/20.10.12 (linux)"
+ },
+ "Method": "POST",
+ "Path": "/v1.41/volumes/create",
+ "PathArr": [
+  "",
+  "v1.41",
+  "volumes",
+  "create"
+ ],
+ "PathPlain": "/v1.41/volumes/create",
+ "Query": {},
+ "User": ""
+}

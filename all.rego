@@ -29,6 +29,8 @@ allow_full {
     not nodes
     not secrets
     not configs
+    not volume
+    not volumes_ls
     not binds
     not capadd
     not devices
@@ -138,16 +140,49 @@ configs { # docker config (part of swarm)
     val == "configs"
 }
 
-
-binds { # allow no binds or empty binds
-        # this blocks any volume mount, not only host filesystem
-    input.Body.HostConfig.Binds != null 
-    not binds_array
+volume { # allow create only simple volumes. No options allowed. DriverOpts is null or empty object.
+    input.Body.DriverOpts != null 
+    not driveropts_empty_object
 }
 
-binds_array {
+driveropts_empty_object {
+    is_object(input.Body.DriverOpts)
+    count(input.Body.DriverOpts) == 0
+}
+
+volumes_ls {
+    input.Method == "GET"
+    count(input.PathArr) == 3
+    input.PathArr[2] == "volumes"
+}
+
+
+binds { # allow no binds or only allowed binds
+    input.Body.HostConfig.Binds != null 
+    not binds_good_array
+}
+
+binds_good_array {
     is_array(input.Body.HostConfig.Binds)
-    count(input.Body.HostConfig.Binds) == 0
+    not binds_strings
+    not bad_strings
+}
+
+binds_strings {
+    val := input.Body.HostConfig.Binds[_]
+    not is_string(val)
+}
+
+bad_strings {
+    val := input.Body.HostConfig.Binds[_]
+    check_string(val)
+}
+
+check_string(s) { #not allow host file/folder binds except 3 allowed ones
+    startswith(s,"/")
+    s!= "/var/run/docker.sock:/var/run/docker.sock"
+    s!= "/cache"
+    s!= "/usr/local/bin/das-cli:/usr/local/bin/das-cli:ro"
 }
 
 capadd { # allow CapAdd == null or CapAdd == [] (empty array)
