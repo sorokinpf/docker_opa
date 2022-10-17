@@ -4,7 +4,7 @@ allow {
     not volume
 }
 
-volume { # allow only simple volumes. No options allowed. DriverOpts is null or empty object.
+volume { # allow create only simple volumes. No options allowed. DriverOpts is null or empty object.
     input.Body.DriverOpts != null 
     not driveropts_empty_object
 }
