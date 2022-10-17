@@ -15,8 +15,8 @@ Forbidden:
 - mount host volumes except allowed once (`-v`)
 - port publishing (`-P` and `-p`)
 - use PID host namespace  (`--pid`)
-- use non default network (`--network`)
-- use non default cgroup (`--cgroup-parent`)
+- use not default network (`--network`)
+- use not default cgroup (`--cgroup-parent`)
 - use host devices (`--device`)
 - disable seccomp and apparmor(`--security-opt apparmor=unconfined` and `--security-opt seccomp=unconfined`) ATTENTION: two options exists `apparmor:unconfined` and `apparmor=unconfined`
 - `docker plugin`
