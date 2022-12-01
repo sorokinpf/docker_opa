@@ -37,7 +37,7 @@ allow_full {
     not ipc
     not network
     not pid
-    not ports
+    # not ports - low severity
     not privileged
     not seccomp_apparmor_unconfined
 } {
@@ -183,6 +183,7 @@ bad_strings {
 check_string(s) { #not allow host file/folder binds except 3 allowed ones
     startswith(s,"/")
     s!= "/var/run/docker.sock:/var/run/docker.sock"
+    s!= "/var/run/docker.sock:/var/run/docker.sock:rw"
     s!= "/cache"
     s!= "/usr/local/bin/das-cli:/usr/local/bin/das-cli:ro"
 }
@@ -207,23 +208,43 @@ devices_array {
     count(input.Body.HostConfig.Devices) == 0 
 }
 
-ipc { #only string values "none", "private" and "" are allowed
+ipc { #(only string values "none", "private" and "") OR null are allowed 
+    input.Body.HostConfig.IpcMode != null
+    ipc_bad_string
+}
+
+ipc_bad_string {
     not is_string(input.Body.HostConfig.IpcMode)
 } {
     input.Body.HostConfig.IpcMode != "none"
     input.Body.HostConfig.IpcMode != "private"
     input.Body.HostConfig.IpcMode != ""
+    
 } 
 
-network { #any string values except "host" and "bridge" are allowed
+#null or (string and string is good)
+# not (not null and (not string or not string is good))
+
+
+network { #(any string values except "host" and "bridge") OR null are allowed
+    input.Body.HostConfig.NetworkMode != null
+    network_bad_string
+}
+
+network_bad_string {
     not is_string(input.Body.HostConfig.NetworkMode)
 } {
     input.Body.HostConfig.NetworkMode == "host"
-} {
+}{
     input.Body.HostConfig.NetworkMode == "bridge"
 }
 
 pid { #only string values "" are allowed
+    input.Body.HostConfig.PidMode != null
+    pid_bad_string
+} 
+
+pid_bad_string { #only string values "" are allowed
     not is_string(input.Body.HostConfig.PidMode)
 } {
     input.Body.HostConfig.PidMode != ""
