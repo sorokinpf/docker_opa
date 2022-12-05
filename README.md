@@ -13,7 +13,7 @@ Forbidden:
 - add capabilities (`--cap-add`)
 - use IPC parameter (`--ipc`)
 - mount host volumes except allowed once (`-v`)
-- port publishing (`-P` and `-p`)
+- ~~port publishing (`-P` and `-p`)~~ (not so security issue)
 - use PID host namespace  (`--pid`)
 - use not default network (`--network`)
 - use not default cgroup (`--cgroup-parent`)
