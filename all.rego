@@ -263,8 +263,13 @@ ports_object {
 }
 
 privileged {
-    input.Body.HostConfig.Privileged
+    input.Body.HostConfig.Privileged != null
+    privileged_bad
 } 
+
+privileged_bad {
+    input.Body.HostConfig.Privileged
+}
 
 seccomp_apparmor_unconfined {
     contains(input.Body.HostConfig.SecurityOpt[_], "unconfined")
