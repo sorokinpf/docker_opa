@@ -235,8 +235,6 @@ network_bad_string {
     not is_string(input.Body.HostConfig.NetworkMode)
 } {
     input.Body.HostConfig.NetworkMode == "host"
-}{
-    input.Body.HostConfig.NetworkMode == "bridge"
 }
 
 pid { #only string values "" are allowed
