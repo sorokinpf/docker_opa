@@ -55,6 +55,25 @@ echo 'capadd'
 docker run --cap-add SYS_ADMIN ubuntu whoami
 echo 'devices'
 docker run --device /dev/vda1 ubuntu whoami
+echo 'device cgroup rule (--device bypass, needs CAP_MKNOD which is on by default)'
+docker run --rm --device-cgroup-rule 'b *:* rwm' ubuntu whoami
+echo 'cgroup parent'
+docker run --rm --cgroup-parent=/evil ubuntu whoami
+echo 'mounts bad (-v bypass)'
+docker run --rm --mount type=bind,src=/,dst=/mnt ubuntu whoami
+echo 'mounts bad 2 (volume driver opts, bypasses volume create rule too)'
+docker run --rm --mount type=volume,dst=/mnt,volume-opt=type=none,volume-opt=device=/,volume-opt=o=bind ubuntu whoami
+echo 'volumes-from (-v bypass)'
+docker run --rm --volumes-from $ID ubuntu whoami
+echo 'systempaths (unmasks /proc and /sys, cli sends it as empty MaskedPaths/ReadonlyPaths)'
+docker run --rm --security-opt systempaths=unconfined ubuntu whoami
+echo 'sysctl'
+docker run --rm --sysctl kernel.shmall=4294967296 ubuntu whoami
+echo 'capabilities (no cli flag for it, api only)'
+curl -s --unix-socket /var/run/docker.sock -H 'Content-Type: application/json' \
+  -X POST 'http://d/v1.41/containers/create' \
+  -d '{"Image":"ubuntu","Cmd":["whoami"],"HostConfig":{"Capabilities":["CAP_SYS_ADMIN"]}}'
+echo
 echo 'ipc'
 docker run --ipc=privatefew ubuntu whoami
 echo 'network 2 tests'

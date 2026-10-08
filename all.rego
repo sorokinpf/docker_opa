@@ -32,14 +32,21 @@ allow_full {
     not volume
     not volumes_ls
     not binds
+    not mounts
+    not volumes_from
     not capadd
+    not capabilities
     not devices
+    not device_cgroup_rules
+    not cgroup_parent
     not ipc
     not network
     not pid
     # not ports - low severity
     not privileged
     not seccomp_apparmor_unconfined
+    not systempaths
+    not sysctls
 } {
     input.Headers["Opa-Bypass"] == "your_secret_password_here"
 }
@@ -188,6 +195,29 @@ check_string(s) { #not allow host file/folder binds except 3 allowed ones
     s!= "/usr/local/bin/das-cli:/usr/local/bin/das-cli:ro"
 }
 
+mounts { # --mount is another way to say -v, so Binds rules must not be the only check.
+         # Only null/absent/empty array are allowed. Beware: Mounts can also carry
+         # volume driver options (VolumeOptions.DriverConfig.Options), bypassing `volume` rule.
+    input.Body.HostConfig.Mounts != null
+    not mounts_empty_array
+}
+
+mounts_empty_array {
+    is_array(input.Body.HostConfig.Mounts)
+    count(input.Body.HostConfig.Mounts) == 0
+}
+
+volumes_from { # --volumes-from inherits ALL mounts of another container (docker.sock, /cache, ...),
+               # so it bypasses the Binds allow list. Only null and empty arrays are allowed.
+    input.Body.HostConfig.VolumesFrom != null
+    not volumes_from_empty_array
+}
+
+volumes_from_empty_array {
+    is_array(input.Body.HostConfig.VolumesFrom)
+    count(input.Body.HostConfig.VolumesFrom) == 0
+}
+
 capadd { # allow CapAdd == null or CapAdd == [] (empty array)
     input.Body.HostConfig.CapAdd != null 
     not capadd_array
@@ -198,6 +228,17 @@ capadd_array {
     count(input.Body.HostConfig.CapAdd) == 0
 }
 
+capabilities { # HostConfig.Capabilities (API 1.40) is a separate field holding the resulting
+               # capability set, so CapAdd == null does not mean "no capabilities added".
+    input.Body.HostConfig.Capabilities != null
+    not capabilities_empty_array
+}
+
+capabilities_empty_array {
+    is_array(input.Body.HostConfig.Capabilities)
+    count(input.Body.HostConfig.Capabilities) == 0
+}
+
 devices { #only null and empty arrays are allowed
     input.Body.HostConfig.Devices != null
     not devices_array
@@ -205,7 +246,30 @@ devices { #only null and empty arrays are allowed
 
 devices_array {
     is_array(input.Body.HostConfig.Devices)
-    count(input.Body.HostConfig.Devices) == 0 
+    count(input.Body.HostConfig.Devices) == 0
+}
+
+device_cgroup_rules { #--device-cgroup-rule 'b *:* rwm' plus CAP_MKNOD (it is in the docker default
+                      #capability set) gives access to raw host disks without --device at all.
+                      #Only null and empty arrays are allowed.
+    input.Body.HostConfig.DeviceCgroupRules != null
+    not device_cgroup_rules_empty_array
+}
+
+device_cgroup_rules_empty_array {
+    is_array(input.Body.HostConfig.DeviceCgroupRules)
+    count(input.Body.HostConfig.DeviceCgroupRules) == 0
+}
+
+cgroup_parent { #only string value "" is allowed, i.e. the default cgroup
+    input.Body.HostConfig.CgroupParent != null
+    cgroup_parent_bad_string
+}
+
+cgroup_parent_bad_string {
+    not is_string(input.Body.HostConfig.CgroupParent)
+} {
+    input.Body.HostConfig.CgroupParent != ""
 }
 
 ipc { #(only string values "none", "private" and "") OR null are allowed 
@@ -271,6 +335,29 @@ privileged_bad {
 
 seccomp_apparmor_unconfined {
     contains(input.Body.HostConfig.SecurityOpt[_], "unconfined")
+}
+
+systempaths { # docker masks /proc/kcore, /proc/keys, /sys/firmware, ... and mounts /proc/sys,
+              # /proc/sysrq-trigger, ... read-only. An empty array turns that off. Writable
+              # /proc/sys means writable kernel.core_pattern, which is a host escape.
+              # docker cli sends null here, so any explicit value is forbidden.
+              # NOTE: `--security-opt systempaths=unconfined` is translated by the cli into empty
+              # MaskedPaths/ReadonlyPaths, so the SecurityOpt rule above does not catch it.
+    input.Body.HostConfig.MaskedPaths != null
+} {
+    input.Body.HostConfig.ReadonlyPaths != null
+}
+
+sysctls { # docker allows namespaced sysctls only, but kernel.shm* can eat host memory and with a
+          # shared netns net.* settings of another container are affected.
+          # Only null and empty objects are allowed.
+    input.Body.HostConfig.Sysctls != null
+    not sysctls_empty_object
+}
+
+sysctls_empty_object {
+    is_object(input.Body.HostConfig.Sysctls)
+    count(input.Body.HostConfig.Sysctls) == 0
 }
 
 PathArr :=split(ClearPath,"/") #some versions of docker do not send input.PathArr. So it's more reliable to compute PathArr ourself

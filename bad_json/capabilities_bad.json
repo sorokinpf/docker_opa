@@ -4,9 +4,7 @@
   "AttachStderr": true,
   "AttachStdin": false,
   "AttachStdout": true,
-  "Cmd": [
-   "bash"
-  ],
+  "Cmd": null,
   "Domainname": "",
   "Entrypoint": null,
   "Env": null,
@@ -21,6 +19,9 @@
    "BlkioWeightDevice": [],
    "CapAdd": null,
    "CapDrop": null,
+   "Capabilities": [
+    "CAP_SYS_ADMIN"
+   ],
    "Cgroup": "",
    "CgroupParent": "",
    "CgroupnsMode": "",
@@ -48,7 +49,7 @@
    "GroupAdd": null,
    "IOMaximumBandwidth": 0,
    "IOMaximumIOps": 0,
-   "IpcMode": "host",
+   "IpcMode": "",
    "Isolation": "",
    "KernelMemory": 0,
    "KernelMemoryTCP": 0,
@@ -86,7 +87,7 @@
    "VolumesFrom": null
   },
   "Hostname": "",
-  "Image": "ubuntu",
+  "Image": "hello-world",
   "Labels": {},
   "NetworkingConfig": {
    "EndpointsConfig": {}
@@ -101,7 +102,7 @@
   "WorkingDir": ""
  },
  "Headers": {
-  "Content-Length": "1536",
+  "Content-Length": "1566",
   "Content-Type": "application/json",
   "User-Agent": "Docker-Client/20.10.12 (linux)"
  },
