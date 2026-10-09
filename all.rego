@@ -193,6 +193,7 @@ check_string(s) { #not allow host file/folder binds except 3 allowed ones
     s!= "/var/run/docker.sock:/var/run/docker.sock:rw"
     s!= "/cache"
     s!= "/usr/local/bin/das-cli:/usr/local/bin/das-cli:ro"
+    s!= "/temp_dir:/temp_dir"
 }
 
 mounts { # --mount is another way to say -v, so Binds rules must not be the only check.
